@@ -1,0 +1,54 @@
+# GitLab CI/CD pipeline for the NestJS Movie API Backend
+
+# Define stages for the pipeline
+stages:
+  - test
+  - build
+
+# Define a cache for node modules to speed up builds
+cache:
+  paths:
+    - node_modules/
+
+# Job to run unit and e2e tests
+run_tests:
+  stage: test
+  image: node:18-alpine # Use Node.js 18 environment
+  script:
+    - echo "Installing dependencies..."
+    - npm install # Install project dependencies
+    - echo "Running unit tests..."
+    - npm run test # Run unit tests
+    - echo "Running e2e tests..."
+    - npm run test:e2e # Run end-to-end tests
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - junit.xml
+
+# Job to build the Docker image
+build_docker_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind # Enable Docker-in-Docker for building images
+  variables:
+    DOCKER_HOST: tcp://docker:2375 # Connect to the Docker daemon
+    DOCKER_TLS_CERTDIR: "" 
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHORT_SHA
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    # Login to GitLab Container Registry using CI_REGISTRY_USER and CI_REGISTRY_PASSWORD
+    # These are predefined CI/CD variables in GitLab
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "Building Docker image..."
+    # Build the Docker image using the Dockerfile in the current directory
+    - docker build -t $IMAGE_NAME .
+    - echo "Pushing Docker image..."
+    # Push the built image to the GitLab Container Registry
+    - docker push $IMAGE_NAME
+  only:
+    - main # This job will only run on the 'main' branch
+  tags:
+    - docker

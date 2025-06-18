@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: . # Build context is the current directory
+      dockerfile: Dockerfile # Use the Dockerfile in the current directory
+    container_name: movie-api-backend
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000
+    volumes:
+      # Persist the SQLite database file outside the container
+      # This ensures data is not lost when the container is stopped or removed
+      - ./movie.sqlite:/app/movie.sqlite
+    env_file:
+      - .env # Load environment variables from the .env file
+    depends_on:
+      # No explicit dependency for SQLite as it's file-based,
+      - # Removed for SQLite, but keeping structure for illustration if user changes mind
+    restart: always # Always restart the container if it stops
