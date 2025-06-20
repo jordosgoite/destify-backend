@@ -54,7 +54,6 @@ Follow these steps to set up and run the backend API on your local machine.
 
 If you haven't already, clone the backend repository:
 
-```bash
 git clone [https://github.com/jordosgoite/destify-backend.git](https://github.com/jordosgoite/destify-backend.git)
 cd movie-api
 npm install 
@@ -87,6 +86,8 @@ Username: testuser
 Password: password123
 Project Structure
 The core directories and files for this NestJS backend include:
+
+### Project Structure
 
 movie-api/
 ├── dist/                     # Compiled JavaScript output (automatically generated)

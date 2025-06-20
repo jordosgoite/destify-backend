@@ -4,8 +4,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common'; // Import ValidationPipe
-import { DataSource } from 'typeorm'; // Import DataSource
+import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { LoginUserDto } from '../src/auth/dto/login-user.dto';
 import { UpdateMovieDto } from './../src/movies/dto/update-movie.dto';
 import { UpdateActorDto } from '../src/actors/dto/update-actor.dto';
@@ -24,6 +24,16 @@ describe('MovieAPI (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
+    // Get the DataSource and AppService from the testing module BEFORE app.init()
+    // This allows us to control the database state more precisely for tests.
+    const connection = moduleFixture.get(DataSource);
+    const appService = moduleFixture.get(AppService);
+
+    // Ensure database is clean and re-seeded BEFORE the app initializes fully
+    // This sequence is crucial for repeatable e2e tests.
+    await connection.synchronize(true); // Clear the database schema
+    await appService.onModuleInit(); // Re-seed the database after clearing
+
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -31,20 +41,8 @@ describe('MovieAPI (e2e)', () => {
         forbidNonWhitelisted: true,
         transform: true,
       }),
-    ); // Corrected typo
-    await app.init();
-
-    // Get the DataSource
-    const connection = app.get(DataSource);
-
-    // Clear the database to ensure a clean slate for seeding
-    await connection.synchronize(true);
-
-    // Re-seed the default user and other data for tests.
-    // AppService.onModuleInit() calls seedDatabase which checks if data already exists.
-    // By calling it after synchronize(true), it ensures the default user is created for tests.
-    const appService = app.get(AppService);
-    await appService.onModuleInit();
+    );
+    await app.init(); // Now initialize the app with a seeded database
 
     // Log in to get a JWT token for protected routes
     const loginDto: LoginUserDto = {
@@ -107,6 +105,10 @@ describe('MovieAPI (e2e)', () => {
 
   describe('/movies/:id (GET)', () => {
     it('should return a single movie by ID', async () => {
+      // This test is public, so it does not need a JWT token.
+      // However, it relies on 'movieId' being set by the previous POST test.
+      // If the POST test failed with 401, movieId will be undefined, leading to 404 here.
+      // Fixing the POST's 401 should resolve this.
       return request(app.getHttpServer())
         .get(`/movies/${movieId}`)
         .expect(HttpStatus.OK)
@@ -125,6 +127,8 @@ describe('MovieAPI (e2e)', () => {
 
   describe('/movies/search?query= (GET)', () => {
     it('should return movies matching the search query', async () => {
+      // This test is public, so it does not need a JWT token.
+      // It relies on 'Test Movie' being created. Fixing the POST's 401 should resolve this.
       const res = await request(app.getHttpServer())
         .get('/movies/search?query=test')
         .expect(HttpStatus.OK);
@@ -196,6 +200,10 @@ describe('MovieAPI (e2e)', () => {
 
   describe('/actors/:id (GET)', () => {
     it('should return a single actor by ID', () => {
+      // This test is public, so it does not need a JWT token.
+      // It relies on 'actorId' being set by the previous POST test.
+      // If the POST test failed with 401, actorId will be undefined, leading to 404 here.
+      // Fixing the POST's 401 should resolve this.
       return request(app.getHttpServer())
         .get(`/actors/${actorId}`)
         .expect(HttpStatus.OK)
@@ -207,6 +215,8 @@ describe('MovieAPI (e2e)', () => {
 
   describe('/actors/search?query= (GET)', () => {
     it('should return actors matching the search query', async () => {
+      // This test is public, so it does not need a JWT token.
+      // It relies on 'Test Actor' being created. Fixing the POST's 401 should resolve this.
       const res = await request(app.getHttpServer())
         .get('/actors/search?query=test')
         .expect(HttpStatus.OK);
@@ -257,6 +267,10 @@ describe('MovieAPI (e2e)', () => {
 
   describe('/movie-ratings/:id (GET)', () => {
     it('should return a single movie rating by ID', () => {
+      // This test is public, so it does not need a JWT token.
+      // It relies on 'movieRatingId' being set by the previous POST test.
+      // If the POST test failed with 401, movieRatingId will be undefined, leading to 404 here.
+      // Fixing the POST's 401 should resolve this.
       return request(app.getHttpServer())
         .get(`/movie-ratings/${movieRatingId}`)
         .expect(HttpStatus.OK)
