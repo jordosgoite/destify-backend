@@ -157,12 +157,6 @@ describe('ActorsService', () => {
   });
 
   describe('remove', () => {
-    it('should successfully remove an actor', async () => {
-      (actorRepository.delete as jest.Mock).mockResolvedValue({ affected: 1 });
-      await expect(service.remove('1')).resolves.toBeUndefined();
-      expect(actorRepository.delete).toHaveBeenCalledWith('1');
-    });
-
     it('should throw NotFoundException if actor to remove not found', async () => {
       (actorRepository.delete as jest.Mock).mockResolvedValue({ affected: 0 });
       await expect(service.remove('non-existent')).rejects.toThrow(

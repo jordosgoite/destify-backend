@@ -6,9 +6,7 @@ import { MovieRating } from './entities/movie-rating.entity';
 import { Movie } from '../movies/entities/movie.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([MovieRating, Movie]),
-  ],
+  imports: [TypeOrmModule.forFeature([MovieRating, Movie])],
   controllers: [MovieRatingsController],
   providers: [MovieRatingsService],
   exports: [MovieRatingsService],

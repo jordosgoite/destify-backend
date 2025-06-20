@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { Reflector } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.enableCors();
 
   app.useGlobalPipes(
@@ -21,6 +19,7 @@ async function bootstrap() {
     }),
   );
 
+  // Setup Swagger API documentation
   const config = new DocumentBuilder()
     .setTitle('Movie API')
     .setDescription('API for managing movies, actors, and ratings')
@@ -28,14 +27,17 @@ async function bootstrap() {
     .addTag('movies')
     .addTag('actors')
     .addTag('movie-ratings')
-    .addApiKey(
+    .addTag('auth')
+    .addBearerAuth(
       {
-        type: 'apiKey',
-        name: 'x-api-secret',
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
         in: 'header',
-        description: 'API secret for Create, Update, Delete operations',
       },
-      'apiSecret',
+      'JWT-auth',
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);

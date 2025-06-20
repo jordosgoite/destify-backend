@@ -8,7 +8,6 @@ import {
   Delete,
   HttpCode,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -22,18 +21,16 @@ import {
   ApiSecurity,
 } from '@nestjs/swagger';
 import { Movie } from './entities/movie.entity';
-import { AuthGuard } from '../common/guards/auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { Actor } from '../actors/entities/actor.entity';
 
 @ApiTags('movies')
-@UseGuards(AuthGuard) // Apply AuthGuard globally to all routes in this controller
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
   @Post()
-  @ApiSecurity('apiSecret') // Marks this endpoint as requiring 'apiSecret' for Swagger UI
+  @ApiSecurity('apiSecret')
   @ApiOperation({ summary: 'Create a new movie' })
   @ApiResponse({
     status: 201,
@@ -50,7 +47,7 @@ export class MoviesController {
     return this.moviesService.create(createMovieDto);
   }
 
-  @Public() // Mark this endpoint as public, bypassing AuthGuard
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Get all movies' })
   @ApiResponse({

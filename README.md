@@ -55,7 +55,6 @@ Follow these steps to set up and run the backend API on your local machine.
 If you haven't already, clone the backend repository:
 
 git clone [https://github.com/jordosgoite/destify-backend.git](https://github.com/jordosgoite/destify-backend.git)
-cd movie-api
 npm install 
 
 Environment Variables

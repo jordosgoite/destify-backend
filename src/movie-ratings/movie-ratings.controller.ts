@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   HttpCode,
-  UseGuards,
 } from '@nestjs/common';
 import { MovieRatingsService } from './movie-ratings.service';
 import { CreateMovieRatingDto } from './dto/create-movie-rating.dto';
@@ -20,11 +19,9 @@ import {
   ApiSecurity,
 } from '@nestjs/swagger';
 import { MovieRating } from './entities/movie-rating.entity';
-import { AuthGuard } from '../common/guards/auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('movie-ratings')
-@UseGuards(AuthGuard) // Apply AuthGuard globally to all routes in this controller
 @Controller('movie-ratings')
 export class MovieRatingsController {
   constructor(private readonly movieRatingsService: MovieRatingsService) {}

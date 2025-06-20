@@ -8,7 +8,6 @@ import {
   Delete,
   HttpCode,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ActorsService } from './actors.service';
 import { CreateActorDto } from './dto/create-actor.dto';
@@ -22,12 +21,10 @@ import {
   ApiSecurity,
 } from '@nestjs/swagger';
 import { Actor } from './entities/actor.entity';
-import { AuthGuard } from '../common/guards/auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { Movie } from '../movies/entities/movie.entity';
 
 @ApiTags('actors')
-@UseGuards(AuthGuard) // Apply AuthGuard globally to all routes in this controller
 @Controller('actors')
 export class ActorsController {
   constructor(private readonly actorsService: ActorsService) {}

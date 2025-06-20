@@ -69,9 +69,25 @@ export class ActorsService {
 
   // Delete an actor
   async remove(id: string): Promise<void> {
+    const actor = await this.actorRepository.findOne({
+      where: { id },
+      relations: ['movies'],
+    });
+
+    if (!actor) {
+      throw new NotFoundException(`Actor with ID "${id}" not found.`);
+    }
+
+    for (const movie of actor.movies) {
+      movie.actors = movie.actors.filter((a) => a.id !== id);
+      await this.movieRepository.save(movie);
+    }
+
     const result = await this.actorRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Actor with ID "${id}" not found.`);
+      throw new NotFoundException(
+        `Actor with ID "${id}" not found after disassociation attempt (internal error).`,
+      );
     }
   }
 }
