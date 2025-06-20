@@ -1,39 +1,43 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesService } from './movies.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Actor } from '../actors/entities/actor.entity';
-import { Repository } from 'typeorm';
+import { Repository, ILike, In } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 
-const mockMovieRepository = () => ({
+jest.mock('typeorm', () => ({
+  ...jest.requireActual('typeorm'),
+  In: jest.fn((value: any[]) => ({
+    _type: 'in',
+    _value: value,
+  })),
+  ILike: jest.fn((value: string) => `ILike(${value})`),
+}));
+
+const mockMovieRepository = {
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
   findOne: jest.fn(),
-  findOneBy: jest.fn(), // If you use findOneBy
+  findOneBy: jest.fn(),
   delete: jest.fn(),
   preload: jest.fn(),
-});
+  count: jest.fn(),
+};
 
-const mockActorRepository = () => ({
-  findBy: jest.fn(() => Promise.resolve([])),
-  // Ensure findBy is always defined
-});
-
-import { ObjectLiteral } from 'typeorm';
-
-type MockRepository<T extends ObjectLiteral = any> = Partial<
-  Record<keyof Repository<T>, jest.Mock>
->;
+const mockActorRepository = {
+  findBy: jest.fn(),
+};
 
 describe('MoviesService', () => {
   let service: MoviesService;
-  let movieRepository: MockRepository<Movie>;
-  let actorRepository: MockRepository<Actor>;
+  let movieRepository: Repository<Movie>;
+  let actorRepository: Repository<Actor>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,22 +45,20 @@ describe('MoviesService', () => {
         MoviesService,
         {
           provide: getRepositoryToken(Movie),
-          useValue: mockMovieRepository(),
+          useValue: mockMovieRepository,
         },
         {
           provide: getRepositoryToken(Actor),
-          useValue: mockActorRepository(),
+          useValue: mockActorRepository,
         },
       ],
     }).compile();
 
     service = module.get<MoviesService>(MoviesService);
-    movieRepository = module.get<MockRepository<Movie>>(
-      getRepositoryToken(Movie),
-    );
-    actorRepository = module.get<MockRepository<Actor>>(
-      getRepositoryToken(Actor),
-    );
+    movieRepository = module.get<Repository<Movie>>(getRepositoryToken(Movie));
+    actorRepository = module.get<Repository<Actor>>(getRepositoryToken(Actor));
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -71,9 +73,8 @@ describe('MoviesService', () => {
       };
       const movie = { id: '1', ...createMovieDto, actors: [], ratings: [] };
 
-      expect(movieRepository.create).toBeDefined();
-      movieRepository.create!.mockReturnValue(movie);
-      movieRepository.save!.mockResolvedValue(movie);
+      (movieRepository.create as jest.Mock).mockReturnValue(movie);
+      (movieRepository.save as jest.Mock).mockResolvedValue(movie);
 
       expect(await service.create(createMovieDto)).toEqual(movie);
       expect(movieRepository.create).toHaveBeenCalledWith(createMovieDto);
@@ -95,13 +96,13 @@ describe('MoviesService', () => {
         ratings: [],
       };
 
-      movieRepository.create!.mockReturnValue(movie);
-      actorRepository.findBy!.mockResolvedValue([actor1, actor2]);
-      movieRepository.save!.mockResolvedValue(movie);
+      (movieRepository.create as jest.Mock).mockReturnValue(movie);
+      (actorRepository.findBy as jest.Mock).mockResolvedValue([actor1, actor2]);
+      (movieRepository.save as jest.Mock).mockResolvedValue(movie);
 
       expect(await service.create(createMovieDto)).toEqual(movie);
       expect(actorRepository.findBy).toHaveBeenCalledWith({
-        id: expect.arrayContaining<string>([actor1.id, actor2.id]),
+        id: In([actor1.id, actor2.id]),
       });
       expect(movieRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({ actors: [actor1, actor2] }),
@@ -114,14 +115,14 @@ describe('MoviesService', () => {
         releaseYear: 2021,
         actorIds: ['actor1-uuid', 'non-existent-actor-uuid'],
       };
-      actorRepository.findBy.mockResolvedValue([
+      (actorRepository.findBy as jest.Mock).mockResolvedValue([
         { id: 'actor1-uuid', name: 'Actor One', birthYear: 1980 },
-      ]); // Only one found
+      ]);
 
       await expect(service.create(createMovieDto)).rejects.toThrow(
         NotFoundException,
       );
-      expect(movieRepository.save).not.toHaveBeenCalled(); // Ensure no save if actors not found
+      expect(movieRepository.save).not.toHaveBeenCalled();
     });
   });
 
@@ -136,7 +137,7 @@ describe('MoviesService', () => {
           ratings: [],
         },
       ];
-      movieRepository.finds.mockResolvedValue(movies);
+      (movieRepository.find as jest.Mock).mockResolvedValue(movies);
       expect(await service.findAll()).toEqual(movies);
       expect(movieRepository.find).toHaveBeenCalledWith({
         relations: ['actors', 'ratings'],
@@ -153,7 +154,7 @@ describe('MoviesService', () => {
         actors: [],
         ratings: [],
       };
-      movieRepository.findOne.mockResolvedValue(movie);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(movie);
       expect(await service.findOne('1')).toEqual(movie);
       expect(movieRepository.findOne).toHaveBeenCalledWith({
         where: { id: '1' },
@@ -162,7 +163,7 @@ describe('MoviesService', () => {
     });
 
     it('should throw NotFoundException if movie not found', async () => {
-      movieRepository.findOne.mockResolvedValue(null);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(null);
       await expect(service.findOne('non-existent')).rejects.toThrow(
         NotFoundException,
       );
@@ -180,10 +181,10 @@ describe('MoviesService', () => {
           ratings: [],
         },
       ];
-      movieRepository.find.mockResolvedValue(movies);
+      (movieRepository.find as jest.Mock).mockResolvedValue(movies);
       expect(await service.search('Action')).toEqual(movies);
       expect(movieRepository.find).toHaveBeenCalledWith({
-        where: { title: expect.any(Object) },
+        where: { title: ILike('%Action%') },
         relations: ['actors', 'ratings'],
       });
     });
@@ -208,8 +209,8 @@ describe('MoviesService', () => {
         releaseYear: 2005,
       };
 
-      movieRepository.findOne.mockResolvedValue(existingMovie); // Preload finds existing
-      movieRepository.save.mockResolvedValue(updatedMovie);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(existingMovie);
+      (movieRepository.save as jest.Mock).mockResolvedValue(updatedMovie);
 
       expect(await service.update('1', updateMovieDto)).toEqual(updatedMovie);
       expect(movieRepository.findOne).toHaveBeenCalledWith({
@@ -222,7 +223,7 @@ describe('MoviesService', () => {
     });
 
     it('should throw NotFoundException if movie to update not found', async () => {
-      movieRepository.findOne.mockResolvedValue(null);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(null);
       await expect(
         service.update('non-existent', { title: 'Any' }),
       ).rejects.toThrow(NotFoundException);
@@ -241,15 +242,15 @@ describe('MoviesService', () => {
       const updateMovieDto: UpdateMovieDto = { actorIds: [actor2.id] };
       const updatedMovie = { ...existingMovie, actors: [actor2] };
 
-      movieRepository.findOne.mockResolvedValue(existingMovie);
-      actorRepository.findBy.mockResolvedValue([actor2]);
-      movieRepository.save.mockResolvedValue(updatedMovie);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(existingMovie);
+      (actorRepository.findBy as jest.Mock).mockResolvedValue([actor2]);
+      (movieRepository.save as jest.Mock).mockResolvedValue(updatedMovie);
 
       expect(await service.update('movie-uuid', updateMovieDto)).toEqual(
         updatedMovie,
       );
       expect(actorRepository.findBy).toHaveBeenCalledWith({
-        id: expect.arrayContaining([actor2.id]),
+        id: In([actor2.id]),
       });
       expect(movieRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({ actors: [actor2] }),
@@ -268,9 +269,9 @@ describe('MoviesService', () => {
       const updateMovieDto: UpdateMovieDto = { actorIds: [] };
       const updatedMovie = { ...existingMovie, actors: [] };
 
-      movieRepository.findOne.mockResolvedValue(existingMovie);
-      actorRepository.findBy.mockResolvedValue([]); // No actors found for an empty array
-      movieRepository.save.mockResolvedValue(updatedMovie);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(existingMovie);
+      (actorRepository.findBy as jest.Mock).mockResolvedValue([]);
+      (movieRepository.save as jest.Mock).mockResolvedValue(updatedMovie);
 
       expect(await service.update('movie-uuid', updateMovieDto)).toEqual(
         updatedMovie,
@@ -291,10 +292,10 @@ describe('MoviesService', () => {
       const updateMovieDto: UpdateMovieDto = {
         actorIds: ['actor1-uuid', 'non-existent-actor-uuid'],
       };
-      movieRepository.findOne.mockResolvedValue(existingMovie);
-      actorRepository.findBy.mockResolvedValue([
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(existingMovie);
+      (actorRepository.findBy as jest.Mock).mockResolvedValue([
         { id: 'actor1-uuid', name: 'Actor One', birthYear: 1980 },
-      ]); // Only one found
+      ]);
 
       await expect(
         service.update('movie-uuid', updateMovieDto),
@@ -305,13 +306,13 @@ describe('MoviesService', () => {
 
   describe('remove', () => {
     it('should successfully remove a movie', async () => {
-      movieRepository.delete.mockResolvedValue({ affected: 1 });
+      (movieRepository.delete as jest.Mock).mockResolvedValue({ affected: 1 });
       await expect(service.remove('1')).resolves.toBeUndefined();
       expect(movieRepository.delete).toHaveBeenCalledWith('1');
     });
 
     it('should throw NotFoundException if movie to remove not found', async () => {
-      movieRepository.delete.mockResolvedValue({ affected: 0 });
+      (movieRepository.delete as jest.Mock).mockResolvedValue({ affected: 0 });
       await expect(service.remove('non-existent')).rejects.toThrow(
         NotFoundException,
       );
@@ -327,12 +328,12 @@ describe('MoviesService', () => {
         actors: [{ id: 'a1', name: 'Actor1' }],
         ratings: [],
       };
-      movieRepository.findOne.mockResolvedValue(movie);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(movie);
       expect(await service.findActorsInMovie('1')).toEqual(movie.actors);
     });
 
     it('should throw NotFoundException if movie not found when getting actors', async () => {
-      movieRepository.findOne.mockResolvedValue(null);
+      (movieRepository.findOne as jest.Mock).mockResolvedValue(null);
       await expect(service.findActorsInMovie('non-existent')).rejects.toThrow(
         NotFoundException,
       );

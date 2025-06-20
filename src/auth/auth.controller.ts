@@ -15,7 +15,7 @@ import { Public } from '../common/decorators/public.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public() // This endpoint should be public to allow users to log in and get a token
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Log in and get a JWT token' })

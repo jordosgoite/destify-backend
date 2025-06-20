@@ -1,15 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common'; // Import ValidationPipe
+import { DataSource } from 'typeorm'; // Import DataSource
 import { LoginUserDto } from '../src/auth/dto/login-user.dto';
-import { UpdateMovieDto } from '../src/movies/dto/update-movie.dto';
+import { UpdateMovieDto } from './../src/movies/dto/update-movie.dto';
 import { UpdateActorDto } from '../src/actors/dto/update-actor.dto';
 import { UpdateMovieRatingDto } from '../src/movie-ratings/dto/update-movie-rating.dto';
+import { AppService } from '../src/app.service'; // Import AppService for re-seeding
 
 describe('MovieAPI (e2e)', () => {
   let app: INestApplication;
@@ -30,13 +31,20 @@ describe('MovieAPI (e2e)', () => {
         forbidNonWhitelisted: true,
         transform: true,
       }),
-    );
+    ); // Corrected typo
     await app.init();
 
-    // Clear the database before tests to ensure a clean slate for seeding
-    // This is crucial for repeatable tests.
-    const connection = app.get('DataSource'); // Get the TypeORM DataSource
-    await connection.synchronize(true); // Synchronize with drop/create schema
+    // Get the DataSource
+    const connection = app.get(DataSource);
+
+    // Clear the database to ensure a clean slate for seeding
+    await connection.synchronize(true);
+
+    // Re-seed the default user and other data for tests.
+    // AppService.onModuleInit() calls seedDatabase which checks if data already exists.
+    // By calling it after synchronize(true), it ensures the default user is created for tests.
+    const appService = app.get(AppService);
+    await appService.onModuleInit();
 
     // Log in to get a JWT token for protected routes
     const loginDto: LoginUserDto = {

@@ -1,98 +1,209 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Movie API Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the backend API for the Movie API project - TravelZap, built with NestJS, TypeScript, TypeORM, and SQLite. It provides endpoints for managing movies, actors, and movie ratings, along with a robust authentication system using JWTs.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
 
-## Description
+* [Features](#features)
+* [Prerequisites](#prerequisites)
+* [Getting Started](#getting-started)
+    * [Clone the Repository](#clone-the-repository)
+    * [Install Dependencies](#install-dependencies)
+    * [Environment Variables](#environment-variables)
+    * [Run the Development Server](#run-the-development-server)
+* [Project Structure](#project-structure)
+* [Database](#database)
+* [Authentication](#authentication)
+* [API Documentation (Swagger)](#api-documentation-swagger)
+* [Testing](#testing)
+* [Dockerization](#dockerization)
+* [CI/CD with GitLab](#cicd-with-gitlab)
+* [Troubleshooting](#troubleshooting)
+* [Contributing](#contributing)
+* [License](#license)
+* [Credits](#credits)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+* RESTful API for Movies (CRUD)
+* RESTful API for Actors (CRUD)
+* RESTful API for Movie Ratings (CRUD)
+* User Authentication and Authorization using JWT
+* SQLite database with TypeORM for data persistence
+* Database seeding with sample movies, actors, ratings, and a default user
+* Data validation using `class-validator` and `class-transformer`
+* API documentation with Swagger UI
+* Unit and End-to-End (E2E) testing
+* Docker support for containerized deployment
+* GitLab CI/CD pipeline for automated testing and Docker image building
 
-```bash
-$ npm install
-```
+## Prerequisites
 
-## Compile and run the project
+Before you begin, ensure you have the following installed:
 
-```bash
-# development
-$ npm run start
+* **Node.js** (LTS version, e.g., 18.x or newer)
+* **npm** (comes with Node.js) or Yarn
+* **NestJS CLI**: `npm install -g @nestjs/cli`
+* **Docker** (optional, for Dockerization)
 
-# watch mode
-$ npm run start:dev
+## Getting Started
 
-# production mode
-$ npm run start:prod
-```
+Follow these steps to set up and run the backend API on your local machine.
 
-## Run tests
+### Clone the Repository
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+If you haven't already, clone the backend repository:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+git clone [https://github.com/jordosgoite/destify-backend.git](https://github.com/jordosgoite/destify-backend.git)
+cd movie-api
+npm install 
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Environment Variables
+Create a .env file in the root of your movie-api project. This file will store your sensitive environment variables.
+## JWT_SECRET value could be provided by email if needed
 
-## Resources
 
-Check out a few resources that may come in handy when working with NestJS:
+DB_DATABASE=movie.sqlite
+JWT_SECRET=superSecretJWTKey_replace_this_in_production
+Important:
+## JWT_SECRET value could be provided by email if needed
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+DB_DATABASE: This specifies the name of your SQLite database file. You can change it if needed.
+JWT_SECRET: This is crucial for JWT security. Replace superSecretJWTKey_replace_this_in_production with a strong, unique, randomly generated string. You can generate one using Node.js:
 
-## Support
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+#Run the Development Server
 
-## Stay in touch
+npm run start:dev
+The application will typically be accessible at http://localhost:3000. You will see messages in your terminal indicating the database seeding process and the application URL.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+The API documentation (Swagger UI) will be available at http://localhost:3000/api.
 
-## License
+Test Credentials for Login (seeded automatically if no users exist):
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Username: testuser
+Password: password123
+Project Structure
+The core directories and files for this NestJS backend include:
+
+movie-api/
+├── dist/                     # Compiled JavaScript output (automatically generated)
+├── src/
+│   ├── main.ts               # Main application entry point
+│   ├── app.module.ts         # Root application module
+│   ├── app.service.ts        # Service for database seeding
+│   ├── common/
+│   │   └── decorators/
+│   │       └── public.decorator.ts # Custom decorator for public routes
+│   ├── auth/                 # Authentication module
+│   │   ├── auth.controller.ts
+│   │   ├── auth.module.ts
+│   │   ├── auth.service.ts
+│   │   ├── dto/
+│   │   │   └── login-user.dto.ts
+│   │   ├── entities/
+│   │   │   └── user.entity.ts
+│   │   └── guards/
+│   │       └── jwt-auth.guard.ts
+│   │   └── strategies/
+│   │       └── jwt.strategy.ts
+│   ├── movies/               # Movies module
+│   │   ├── movies.controller.ts
+│   │   ├── movies.module.ts
+│   │   ├── movies.service.ts
+│   │   ├── dto/
+│   │   │   ├── create-movie.dto.ts
+│   │   │   └── update-movie.dto.ts
+│   │   └── entities/
+│   │       └── movie.entity.ts
+│   ├── actors/               # Actors module
+│   │   ├── actors.controller.ts
+│   │   ├── actors.module.ts
+│   │   ├── actors.service.ts
+│   │   ├── dto/
+│   │   │   ├── create-actor.dto.ts
+│   │   │   └── update-actor.dto.ts
+│   │   └── entities/
+│   │       └── actor.entity.ts
+│   ├── movie-ratings/        # Movie Ratings module
+│   │   ├── movie-ratings.controller.ts
+│   │   ├── movie-ratings.module.ts
+│   │   ├── movie-ratings.service.ts
+│   │   ├── dto/
+│   │   │   ├── create-movie-rating.dto.ts
+│   │   │   └── update-movie-rating.dto.ts
+│   │   └── entities/
+│   │       └── movie-rating.entity.ts
+├── test/                     # End-to-End (e2e) tests
+├── .env                      # Environment variables
+├── .env.example              # Example environment variables
+├── Dockerfile                # Docker build instructions
+├── docker-compose.yml        # Docker Compose configuration
+├── .gitlab-ci.yml            # GitLab CI/CD pipeline
+├── nest-cli.json             # NestJS CLI configuration
+├── package.json              # Project dependencies and scripts 
+├── tsconfig.json             # TypeScript configuration
+└── README.md                 # This file
+Database
+This project uses SQLite as its database, managed by TypeORM.
+
+DB_DATABASE in .env: Specifies the SQLite database file (default: movie.sqlite). This file will be created in your project's root directory.
+src/app.module.ts: Configures the TypeORM connection. synchronize: true is enabled for development ease, which automatically creates and updates database tables based on your entities. For production, synchronize should be false and migrations should be used.
+src/app.service.ts: Contains onModuleInit hook to seed initial data (movies, actors, ratings, and a default testuser) into the database if it's empty.
+
+Authentication is handled via JSON Web Tokens (JWTs).
+
+src/auth/entities/user.entity.ts: Defines the User entity.
+src/auth/auth.service.ts: Handles user validation and JWT generation using @nestjs/jwt and bcrypt for password hashing.
+src/auth/strategies/jwt.strategy.ts: Validates incoming JWTs. It extracts the token from the Authorization header and verifies it using the JWT_SECRET.
+src/auth/guards/jwt-auth.guard.ts: A global authentication guard that protects most API routes.
+src/common/decorators/public.decorator.ts: A custom decorator (@Public()) used to bypass the JwtAuthGuard for specific routes (e.g., the login endpoint).
+src/main.ts: Registers the JwtAuthGuard globally.
+API Documentation (Swagger)
+The API is documented using Swagger UI, accessible at http://localhost:3000/api when the server is running.
+
+src/main.ts: Configures Swagger with basic API info, tags, and defines the JWT Bearer authentication scheme.
+@ApiTags(), @ApiOperation(), @ApiResponse(), @ApiBearerAuth(): Decorators used in controllers (src/movies/movies.controller.ts, etc.) to enhance Swagger documentation.
+Testing
+This project includes both unit and end-to-end (e2e) tests.
+
+Unit Tests: Located in src/<module-name>/*.service.spec.ts. These test individual services in isolation.
+E2E Tests: Located in test/app.e2e-spec.ts. These test the full API flow, including authentication and CRUD operations, by making actual HTTP requests. The E2E tests include a beforeAll hook to log in and obtain a JWT for subsequent authenticated requests.
+
+To run tests:
+
+# Run all tests (unit and e2e)
+npm test
+
+# Run e2e tests only
+npm run test:e2e
+
+Dockerization
+The application can be easily containerized using Docker.
+
+Dockerfile: Defines the steps to build the Docker image for your application.
+docker-compose.yml: Configures a Docker Compose service to run your backend, mapping ports and persisting the SQLite database file outside the container.
+To build and run with Docker Compose:
+
+# Build the Docker image (only needed once or after Dockerfile changes)
+docker-compose build
+
+# Run the containers in detached mode
+docker-compose up -d
+
+# Stop and remove containers
+docker-compose down
+
+CI/CD with GitLab
+A .gitlab-ci.yml file is provided to set up a basic CI/CD pipeline for GitLab.
+
+Stages: test (runs unit and e2e tests), build (builds and pushes Docker image).
+Test Job: Installs dependencies and runs all tests.
+Build Job: Builds a Docker image of the application and pushes it to GitLab Container Registry ($CI_REGISTRY_IMAGE). This job runs only on the main branch.
+Note: You'll need to configure a GitLab Runner that can execute Docker commands (e.g., a Docker executor or a shell executor with Docker installed).
+
+
+Credits
+This project was developed by (https://www.linkedin.com/in/juan-ordosgoite/).

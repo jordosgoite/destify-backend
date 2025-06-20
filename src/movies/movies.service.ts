@@ -12,7 +12,7 @@ export class MoviesService {
   constructor(
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
-    @InjectRepository(Actor) // Inject Actor repository to find actors for relationships
+    @InjectRepository(Actor)
     private readonly actorRepository: Repository<Actor>,
   ) {}
 
@@ -76,7 +76,7 @@ export class MoviesService {
   async update(id: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
     const movie = await this.movieRepository.findOne({
       where: { id },
-      relations: ['actors'], // Load existing actors for potential updates
+      relations: ['actors'],
     });
     if (!movie) {
       throw new NotFoundException(`Movie with ID "${id}" not found.`);
@@ -92,7 +92,6 @@ export class MoviesService {
 
     // Update actors if actorIds are provided
     if (updateMovieDto.actorIds !== undefined) {
-      // Check if it's explicitly provided, even if empty array
       if (updateMovieDto.actorIds.length > 0) {
         const actors = await this.actorRepository.findBy({
           id: In(updateMovieDto.actorIds),
@@ -102,9 +101,9 @@ export class MoviesService {
             'One or more actor IDs provided for update were not found.',
           );
         }
-        movie.actors = actors; // Replace existing actors with the new set
+        movie.actors = actors;
       } else {
-        movie.actors = []; // Clear all actors if an empty array is provided
+        movie.actors = [];
       }
     }
 

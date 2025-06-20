@@ -7,10 +7,10 @@ import { Movie } from '../movies/entities/movie.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MovieRating, Movie]), // Register MovieRating and Movie entities
+    TypeOrmModule.forFeature([MovieRating, Movie]),
   ],
   controllers: [MovieRatingsController],
   providers: [MovieRatingsService],
-  exports: [MovieRatingsService], // Export MovieRatingsService for seeding
+  exports: [MovieRatingsService],
 })
 export class MovieRatingsModule {}
